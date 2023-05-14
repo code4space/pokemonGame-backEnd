@@ -126,8 +126,6 @@ class Pokemons {
 
   static async addOneToCollection(req, res, next) {
     try {
-      console.log('masuk');
-      console.log(req.body, '===');
       const { name, attack, hp, def, baseExp, power, img1, img2, summary } =
         req.body;
       const UserId = req.user.id;
