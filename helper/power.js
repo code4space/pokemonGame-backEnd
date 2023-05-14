@@ -1,20 +1,20 @@
 function additionalPower(baseExp) {
   if (baseExp < 44) {
-    return Math.ceil(baseExp * 0.1);
+    return Math.ceil(baseExp * 0.12);
   } else if (baseExp < 88) {
-    return Math.ceil(baseExp * 0.2);
+    return Math.ceil(baseExp * 0.25);
   } else if (baseExp < 132) {
-    return Math.ceil(baseExp * 0.3);
+    return Math.ceil(baseExp * 0.42);
   } else if (baseExp < 176) {
-    return Math.ceil(baseExp * 0.4);
+    return Math.ceil(baseExp * 0.56);
   } else if (baseExp < 220) {
-    return Math.ceil(baseExp * 0.5);
+    return Math.ceil(baseExp * 0.61);
   } else if (baseExp < 264) {
-    return Math.ceil(baseExp * 0.6);
+    return Math.ceil(baseExp * 0.89);
   } else if (baseExp < 308) {
-    return Math.ceil(baseExp * 0.8);
+    return Math.ceil(baseExp * 1.1);
   } else {
-    return Math.ceil(baseExp * 0.9);
+    return Math.ceil(baseExp * 1.4);
   }
 }
 

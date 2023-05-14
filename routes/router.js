@@ -29,9 +29,13 @@ async function validation (req, res, next) {
 }
 route.use(validation)
 
+route.get('/user', Player.getUserInfo)
 route.get('/pokemon', Pokemon.getMyCollection)
+route.get('/one/pokemon', Pokemon.getOnePokemon)
 route.delete('/pokemon/:userID', Pokemon.deleteOneFromCollection)
 route.post('/pokemon', Pokemon.addOneToCollection)
-route.get('/random/pokemon', Pokemon.getOneRandom)
+route.patch('/skip/pokemon', Pokemon.skip)
+route.patch('/pokeball/decrease', Player.pokeballUsed)
+route.patch('/pokeball/increase', Player.getPokeball)
 
 module.exports = route

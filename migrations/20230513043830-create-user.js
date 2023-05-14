@@ -18,6 +18,18 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      draw: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      balls: {
+        type: Sequelize.JSONB,
+        allowNull: false,
+      },
+      gacha: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

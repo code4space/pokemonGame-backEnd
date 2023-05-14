@@ -26,13 +26,45 @@ module.exports = (sequelize, DataTypes) => {
         notEmpty: { msg: "Password is required" },
         notNull: { msg: "Password is required" },
       },
-    }
+    },
+    draw: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: "draw is required" },
+        notNull: { msg: "draw is required" },
+      },
+    },
+    balls: {
+      type: DataTypes.JSONB,
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: "Balls is required" },
+        notNull: { msg: "Balls is required" },
+      }
+    },
+    gacha: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: "gacha is required" },
+        notNull: { msg: "gacha is required" },
+      },
+    },
   }, {
     sequelize,
     modelName: 'User',
   });
   User.beforeCreate((user, opt) => {
     user.password = hashPassword(user.password)
+    user.draw = 10;
+    user.balls = {
+      pokeball: 7,
+      greatball: 4,
+      ultraball: 2,
+      masterball: 1
+    }
+    user.gacha = 24
   })
   return User;
 };
