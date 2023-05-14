@@ -78,6 +78,7 @@ class Player {
       const {name} = req.body
       const { balls } = data;
       let newBalls = balls
+      if (newBalls[name] < 1) throw { runOut: `Your ${name} already run out`};
       newBalls[name] = newBalls[name] - 1
 
       await User.update(
@@ -90,7 +91,8 @@ class Player {
       );
       res.status(200).json({ message: `${name} decrease` });
     } catch (error) {
-      res.status(500).json({ message: "Internal Server Error" });
+      if (error.runOut) res.status(500).json({ message: error.runOut });
+      else res.status(500).json({ message: "Internal Server Error" });
     }
   }
 
