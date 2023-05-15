@@ -2,29 +2,46 @@ const { default: axios } = require("axios");
 const additionalPower = require("../helper/power");
 const { Pokemon } = require("../models");
 const { User } = require("../models");
+const { UserPokemon } = require("../models");
 
 class Pokemons {
   static async getMyCollection(req, res, next) {
     try {
       const page = req.query.page ? Number(req.query.page) : 1;
       const sort = req.query.sort; //
-
       const limit = 50;
-      const pokemon = await Pokemon.findAll({
-        where: {
-          UserId: +req.user.id,
-        },
-        include: {
-          nested: true,
-          all: true,
-        },
-        offset: (page - 1) * limit,
-        limit,
-        order: sort === "true" ? [["power", "DESC"]] : "",
-      });
-      const totalPokemon = await Pokemon.count();
 
-      res.status(200).json({ pokemon, totalPokemon, page });
+      const {count, rows: userPokemons} = await UserPokemon.findAndCountAll({
+        where: { userId: req.user.id },
+        include: [{ model: Pokemon }],
+          offset: (page - 1) * limit,
+          limit,
+          order: sort === "true" ? [["power", "DESC"]] : "",
+      });
+
+      const result = {
+        Pokemon: userPokemons,
+        TotalPokemonFromUser: count,
+      };
+      
+      console.log(result);
+      res.status(200).json({ result: result.Pokemon });
+
+      // const pokemon = await Pokemon.findAll({
+      //   where: {
+      //     UserId: +req.user.id,
+      //   },
+      //   include: {
+      //     nested: true,
+      //     all: true,
+      //   },
+      //   offset: (page - 1) * limit,
+      //   limit,
+      //   order: sort === "true" ? [["power", "DESC"]] : "",
+      // });
+      // const totalPokemon = await Pokemon.count();
+
+      // res.status(200).json({ pokemon, totalPokemon, page });
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: "Internal Server Error" });
@@ -77,9 +94,10 @@ class Pokemons {
     try {
       const data = await User.findOne({
         where: {
-          id: req.user.id,
+          id: +req.user.id,
         },
       });
+      console.log(data);
 
       const getPokemon = await axios({
         url: `https://pokeapi.co/api/v2/pokemon?limit=1&offset=${data.gacha}`,
@@ -128,15 +146,6 @@ class Pokemons {
     try {
       const { name, attack, hp, def, baseExp, power, img1, img2, summary } =
         req.body;
-      const UserId = req.user.id;
-
-      const pokemon = await Pokemon.findOne({
-        where: {
-          UserId,
-          name,
-        },
-      });
-      if (pokemon) return res.status(201).json({ message: "Already have" });
 
       if (!name) throw { name: "Name is required" };
       else if (!attack) throw { name: "attack is required" };
@@ -148,26 +157,38 @@ class Pokemons {
       else if (!img2) throw { name: "img2 is required" };
       else if (!summary) throw { name: "summary is required" };
 
-      await Pokemon.create({
-        name,
-        attack,
-        hp,
-        def,
-        baseExp,
-        power,
-        img1,
-        img2,
-        summary,
-        UserId,
+      const [pokemon, pokemonCreated] = await Pokemon.findOrCreate({
+        where: { name },
+        defaults: {
+          name,
+          attack,
+          hp,
+          def,
+          baseExp,
+          power,
+          img1,
+          img2,
+          summary,
+        },
+      });
+      
+      const [userPokemon, created] = await UserPokemon.findOrCreate({
+        where: { userId: +req.user.id, pokemonId: +pokemon.id },
+        defaults: {
+          userId: +req.user.id,
+          pokemonId: +pokemon.id,
+        },
+        fields: ['userId', 'pokemonId'], // Specify the columns you want to include
       });
 
-      res.status(201).json({ message: "Success add new pokemon" });
-    } catch (error) {
-      if (error.name.indexOf("required") > 0) {
-        res.status(400).json({ message: error.name });
+      if (created) {
+        res.status(201).json({ message: 'Success add new Pokemon to collection' });
       } else {
-        res.status(500).json({ error });
+        res.status(201).json({ message: `User with id ${req.user.id} already have ${pokemon.name}`});
       }
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({ message: error });
     }
   }
   static async deleteOneFromCollection(req, res, next) {

@@ -48,16 +48,6 @@ module.exports = {
       type: {
         type: Sequelize.STRING
       },
-      UserId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'Users',
-          key: 'id'
-        },
-        onUpdate: 'cascade',
-        onDelete: 'cascade',
-      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

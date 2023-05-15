@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Pokemon.belongsTo(models.User)
+      Pokemon.belongsToMany(models.User, { through: models.UserPokemon });
     }
   }
   Pokemon.init(
@@ -88,14 +88,6 @@ module.exports = (sequelize, DataTypes) => {
       type: {
         type: DataTypes.STRING,
       },
-      UserId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        validate: {
-          notEmpty: { msg: "User Id is required" },
-          notNull: { msg: "User Id is required" },
-        },
-      }
     },
     {
       sequelize,

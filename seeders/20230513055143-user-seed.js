@@ -9,12 +9,12 @@ module.exports = {
       {
         username: "admin",
         password: hashPassword("adminPokemon1"),
-        draw: 10,
+        draw: 100,
         balls: JSON.stringify({
-          pokeball: 7,
-          greatball: 4,
-          ultraball: 2,
-          masterball: 1,
+          pokeball: 100,
+          greatball: 100,
+          ultraball: 100,
+          masterball: 100,
         }),
         gacha: 24,
         createdAt: new Date(),

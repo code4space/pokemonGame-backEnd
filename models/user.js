@@ -6,7 +6,7 @@ const { hashPassword } = require('../helper/bycrypt');
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      User.hasMany(models.Pokemon)
+      User.belongsToMany(models.Pokemon, { through: models.UserPokemon });
     }
   }
   User.init({
