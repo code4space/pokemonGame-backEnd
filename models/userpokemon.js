@@ -3,35 +3,32 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class UserPokemon extends Model {
     static associate(models) {
-      UserPokemon.belongsTo(models.User, { foreignKey: 'userId' });
-      UserPokemon.belongsTo(models.Pokemon, { foreignKey: 'pokemonId' });
+      UserPokemon.belongsTo(models.User, { foreignKey: 'UserId' });
+      UserPokemon.belongsTo(models.Pokemon, { foreignKey: 'PokemonId' });
     }
   }
   UserPokemon.init(
     {
-      userId: {
+      UserId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         validate: {
-          notEmpty: { msg: "userId is required" },
-          notNull: { msg: "userId is required" },
+          notEmpty: { msg: "UserId is required" },
+          notNull: { msg: "UserId is required" },
         },
-        field: 'userId',
       },
-      pokemonId: {
+      PokemonId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         validate: {
-          notEmpty: { msg: "pokemonId is required" },
-          notNull: { msg: "pokemonId is required" },
+          notEmpty: { msg: "PokemonId is required" },
+          notNull: { msg: "PokemonId is required" },
         },
-        field: 'pokemonId',
       },
     },
     {
       sequelize,
       modelName: "UserPokemon",
-      tableName: "UserPokemons",
     }
   );
   return UserPokemon;

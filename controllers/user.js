@@ -75,11 +75,11 @@ class Player {
           id: +req.user.id,
         },
       });
-      const {name} = req.body
+      const {ballType} = req.body
       const { balls } = data;
       let newBalls = balls
-      if (newBalls[name] < 1) throw { runOut: `Your ${name} already run out`};
-      newBalls[name] = newBalls[name] - 1
+      if (newBalls[ballType] < 1) throw { runOut: `Your ${ballType} already run out`};
+      newBalls[ballType] = newBalls[ballType] - 1
 
       await User.update(
         { balls:newBalls },
@@ -89,8 +89,9 @@ class Player {
           },
         }
       );
-      res.status(200).json({ message: `${name} decrease` });
+      res.status(200).json({ message: `${ballType} decrease` });
     } catch (error) {
+      console.log(error)
       if (error.runOut) res.status(500).json({ message: error.runOut });
       else res.status(500).json({ message: "Internal Server Error" });
     }
@@ -103,10 +104,10 @@ class Player {
           id: +req.user.id,
         },
       });
-      const {name} = req.body
+      const {ballType} = req.body
       const { balls } = data;
       let newBalls = balls
-      newBalls[name] = newBalls[name] + 1
+      newBalls[ballType] = newBalls[ballType] + 1
 
       await User.update(
         { balls:newBalls },
@@ -116,7 +117,7 @@ class Player {
           },
         }
       );
-      res.status(200).json({ message: `${name} increase by 1` });
+      res.status(200).json({ message: `${ballType} increase by 1` });
     } catch (error) {
       res.status(500).json({ message: "Internal Server Error" });
     }

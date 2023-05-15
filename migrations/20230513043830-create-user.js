@@ -23,7 +23,7 @@ module.exports = {
         allowNull: false,
       },
       balls: {
-        type: Sequelize.TEXT,
+        type: Sequelize.JSONB,
         allowNull: false,
       },
       gacha: {

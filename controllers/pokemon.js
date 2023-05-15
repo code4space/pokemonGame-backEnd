@@ -10,22 +10,20 @@ class Pokemons {
       const page = req.query.page ? Number(req.query.page) : 1;
       const sort = req.query.sort; //
       const limit = 50;
-
-      const {count, rows: userPokemons} = await UserPokemon.findAndCountAll({
-        where: { userId: req.user.id },
+      const { count, rows: userPokemons } = await UserPokemon.findAndCountAll({
+        where: { UserId: req.user.id },
         include: [{ model: Pokemon }],
-          offset: (page - 1) * limit,
-          limit,
-          order: sort === "true" ? [["power", "DESC"]] : "",
-      });
+        offset: (page - 1) * limit,
+        limit,
+        order: sort === "true" ? [[{ model: Pokemon }, "power", "DESC"]] : [],
+      });      
 
       const result = {
-        Pokemon: userPokemons,
-        TotalPokemonFromUser: count,
+        pokemon: userPokemons.map((userPokemon) => userPokemon.Pokemon),
+        totalPokemon: count,
       };
-      
-      console.log(result);
-      res.status(200).json({ result: result.Pokemon });
+
+      res.status(200).json({ pokemon:result.pokemon, totalPokemon: result.totalPokemon, page });
 
       // const pokemon = await Pokemon.findAll({
       //   where: {
@@ -97,7 +95,6 @@ class Pokemons {
           id: +req.user.id,
         },
       });
-      console.log(data);
 
       const getPokemon = await axios({
         url: `https://pokeapi.co/api/v2/pokemon?limit=1&offset=${data.gacha}`,
@@ -171,31 +168,35 @@ class Pokemons {
           summary,
         },
       });
-      
+
       const [userPokemon, created] = await UserPokemon.findOrCreate({
-        where: { userId: +req.user.id, pokemonId: +pokemon.id },
+        where: { UserId: +req.user.id, PokemonId: +pokemon.id },
         defaults: {
-          userId: +req.user.id,
-          pokemonId: +pokemon.id,
+          UserId: +req.user.id,
+          PokemonId: +pokemon.id,
         },
-        fields: ['userId', 'pokemonId'], // Specify the columns you want to include
       });
 
       if (created) {
-        res.status(201).json({ message: 'Success add new Pokemon to collection' });
+        res
+          .status(201)
+          .json({ message: "Success add new Pokemon to collection" });
       } else {
-        res.status(201).json({ message: `User with id ${req.user.id} already have ${pokemon.name}`});
+        res.status(201).json({
+          message: `User with id ${req.user.id} already have ${pokemon.name}`,
+        });
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
       res.status(500).json({ message: error });
     }
   }
   static async deleteOneFromCollection(req, res, next) {
-    await Pokemon.destroy({
+    console.log(req.params.pokemonId)
+    await UserPokemon.destroy({
       where: {
         UserId: +req.user.id,
-        id: +req.params.userID,
+        PokemonId: +req.params.pokemonId,
       },
     });
     res.status(200).json({ message: "Success Delete Pokemon" });
