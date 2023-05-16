@@ -9,6 +9,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       Pokemon.belongsToMany(models.User, { through: models.UserPokemon });
+      Pokemon.belongsToMany(models.Type, { through: models.TypePokemon });
     }
   }
   Pokemon.init(
@@ -84,9 +85,6 @@ module.exports = (sequelize, DataTypes) => {
           notEmpty: { msg: "summary is required" },
           notNull: { msg: "summary is required" },
         },
-      },
-      type: {
-        type: DataTypes.STRING,
       },
     },
     {

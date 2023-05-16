@@ -1,8 +1,6 @@
 const { default: axios } = require("axios");
 const additionalPower = require("../helper/power");
-const { Pokemon } = require("../models");
-const { User } = require("../models");
-const { UserPokemon } = require("../models");
+const { Pokemon, User, UserPokemon, Type, TypePokemon } = require("../models");
 
 class Pokemons {
   static async getMyCollection(req, res, next) {
@@ -10,36 +8,77 @@ class Pokemons {
       const page = req.query.page ? Number(req.query.page) : 1;
       const sort = req.query.sort; //
       const limit = 50;
-      const { count, rows: userPokemons } = await UserPokemon.findAndCountAll({
-        where: { UserId: req.user.id },
-        include: [{ model: Pokemon }],
-        offset: (page - 1) * limit,
+
+      const { count, rows } = await UserPokemon.findAndCountAll({
+        where: { UserId: +req.user.id },
         limit,
+        offset: (page - 1) * limit,
+        include: [
+          {
+            model: Pokemon,
+            attributes: [
+              "id",
+              "name",
+              "hp",
+              "attack",
+              "def",
+              "baseExp",
+              "power",
+              "img1",
+              "img2",
+              "summary",
+              "createdAt",
+              "updatedAt",
+            ],
+            include: [
+              {
+                model: Type,
+                attributes: ["name", "weakness", "strength", "immune"],
+                through: { attributes: [] }, // Exclude join table attributes
+              },
+            ],
+          },
+        ],
         order: sort === "true" ? [[{ model: Pokemon }, "power", "DESC"]] : [],
-      });      
+      });
 
-      const result = {
-        pokemon: userPokemons.map((userPokemon) => userPokemon.Pokemon),
-        totalPokemon: count,
-      };
+      const userPokemonData = rows.map((userPokemon) => {
+        const {
+          id,
+          name,
+          hp,
+          attack,
+          def,
+          baseExp,
+          power,
+          img1,
+          img2,
+          summary,
+          createdAt,
+          updatedAt,
+        } = userPokemon.Pokemon;
 
-      res.status(200).json({ pokemon:result.pokemon, totalPokemon: result.totalPokemon, page });
+        const types = userPokemon.Pokemon.Types;
+        return {
+          id,
+          name,
+          hp,
+          attack,
+          def,
+          baseExp,
+          power,
+          img1,
+          img2,
+          summary,
+          createdAt,
+          updatedAt,
+          type: types,
+        };
+      });
 
-      // const pokemon = await Pokemon.findAll({
-      //   where: {
-      //     UserId: +req.user.id,
-      //   },
-      //   include: {
-      //     nested: true,
-      //     all: true,
-      //   },
-      //   offset: (page - 1) * limit,
-      //   limit,
-      //   order: sort === "true" ? [["power", "DESC"]] : "",
-      // });
-      // const totalPokemon = await Pokemon.count();
-
-      // res.status(200).json({ pokemon, totalPokemon, page });
+      res
+        .status(200)
+        .json({ pokemon: userPokemonData, totalPokemon: count, page });
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: "Internal Server Error" });
@@ -100,11 +139,13 @@ class Pokemons {
         url: `https://pokeapi.co/api/v2/pokemon?limit=1&offset=${data.gacha}`,
         method: "GET",
       });
+
       const randomPokemon = getPokemon.data.results[0];
       const { data: pokemonData } = await axios.get(randomPokemon.url);
       const { data: pokemonData1 } = await axios.get(pokemonData.species.url);
 
-      let summary;
+      let summary,
+        type = [];
       const fte = pokemonData1.flavor_text_entries;
       for (let i = 0; i < fte.length; i++) {
         if (fte[i].language.name === "en") {
@@ -114,6 +155,9 @@ class Pokemons {
           break;
         }
       }
+      pokemonData.types.forEach((el) => {
+        type.push(el.type.name);
+      });
 
       const pokemon = {
         name: randomPokemon.name,
@@ -130,6 +174,7 @@ class Pokemons {
         img1: pokemonData.sprites.other.dream_world.front_default,
         img2: pokemonData.sprites.other["official-artwork"].front_default,
         summary,
+        type: type.join(","),
       };
 
       res.status(200).json({ pokemon });
@@ -141,7 +186,7 @@ class Pokemons {
 
   static async addOneToCollection(req, res, next) {
     try {
-      const { name, attack, hp, def, baseExp, power, img1, img2, summary } =
+      let { name, attack, hp, def, baseExp, power, img1, img2, summary, type } =
         req.body;
 
       if (!name) throw { name: "Name is required" };
@@ -153,6 +198,7 @@ class Pokemons {
       else if (!img1) throw { name: "img1 is required" };
       else if (!img2) throw { name: "img2 is required" };
       else if (!summary) throw { name: "summary is required" };
+      else if (!type) throw { name: "type is required" };
 
       const [pokemon, pokemonCreated] = await Pokemon.findOrCreate({
         where: { name },
@@ -178,6 +224,19 @@ class Pokemons {
       });
 
       if (created) {
+        console.log(type)
+        type = type.split(",");
+        for (const el of type) {
+          const typeInstance = await Type.findOne({
+            where: { name: el },
+          });
+
+          await TypePokemon.create({
+            PokemonId: +pokemon.id,
+            TypeId: typeInstance.id,
+          });
+        }
+
         res
           .status(201)
           .json({ message: "Success add new Pokemon to collection" });
@@ -192,7 +251,7 @@ class Pokemons {
     }
   }
   static async deleteOneFromCollection(req, res, next) {
-    console.log(req.params.pokemonId)
+    console.log(req.params.pokemonId);
     await UserPokemon.destroy({
       where: {
         UserId: +req.user.id,

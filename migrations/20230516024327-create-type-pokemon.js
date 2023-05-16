@@ -1,19 +1,19 @@
-"use strict";
+'use strict';
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("UserPokemons", {
+    await queryInterface.createTable('TypePokemons', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER,
+        type: Sequelize.INTEGER
       },
-      UserId: {
+      TypeId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: "Users",
+          model: "Types",
           key: "id",
         },
         onUpdate: "cascade",
@@ -31,15 +31,15 @@ module.exports = {
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: Sequelize.DATE
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE,
-      },
+        type: Sequelize.DATE
+      }
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("UserPokemons");
-  },
+    await queryInterface.dropTable('TypePokemons');
+  }
 };
