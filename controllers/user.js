@@ -77,12 +77,12 @@ class Player {
       });
       const {ballType} = req.body
       const { balls } = data;
-      let newBalls = JSON.parse(balls)
+      let newBalls = balls
       if (newBalls[ballType] < 1) throw { runOut: `Your ${ballType} already run out`};
       newBalls[ballType] = newBalls[ballType] - 1
 
       await User.update(
-        { balls:JSON.stringify(newBalls) },
+        { balls:newBalls },
         {
           where: {
             id: +req.user.id,

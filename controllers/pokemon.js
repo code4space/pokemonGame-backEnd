@@ -6,13 +6,12 @@ class Pokemons {
   static async getMyCollection(req, res, next) {
     try {
       const page = req.query.page ? Number(req.query.page) : 1;
-      const sort = req.query.sort; //
+      const sort = req.query.sort;
       const limit = 50;
+      const offset = (page - 1) * limit;
 
       const { count, rows } = await UserPokemon.findAndCountAll({
         where: { UserId: +req.user.id },
-        limit,
-        offset: (page - 1) * limit,
         include: [
           {
             model: Pokemon,
@@ -34,7 +33,7 @@ class Pokemons {
               {
                 model: Type,
                 attributes: ["name", "weakness", "strength", "immune"],
-                through: { attributes: [] }, // Exclude join table attributes
+                through: { attributes: [] },
               },
             ],
           },
@@ -42,7 +41,28 @@ class Pokemons {
         order: sort === "true" ? [[{ model: Pokemon }, "power", "DESC"]] : [],
       });
 
-      const userPokemonData = rows.map((userPokemon) => {
+      const distinctPokemonCount = await UserPokemon.count({
+        distinct: true,
+        col: "PokemonId",
+        where: { UserId: +req.user.id },
+      });
+
+      const sortedUserPokemonData = rows.sort((a, b) => {
+        const powerA = a.Pokemon.power;
+        const powerB = b.Pokemon.power;
+        if (powerA > powerB) {
+          return sort === "true" ? -1 : 1;
+        } else {
+          return 0;
+        }
+      });
+
+      const paginatedUserPokemonData = sortedUserPokemonData.slice(
+        offset,
+        offset + limit
+      );
+
+      const userPokemonData = paginatedUserPokemonData.map((userPokemon) => {
         const {
           id,
           name,
@@ -59,6 +79,7 @@ class Pokemons {
         } = userPokemon.Pokemon;
 
         const types = userPokemon.Pokemon.Types;
+
         return {
           id,
           name,
@@ -76,16 +97,27 @@ class Pokemons {
         };
       });
 
-      res
-        .status(200)
-        .json({ pokemon: userPokemonData, totalPokemon: count, page });
+      res.status(200).json({
+        pokemon: userPokemonData,
+        totalPokemon: distinctPokemonCount,
+        page,
+      });
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: "Internal Server Error" });
     }
   }
+
   static async skip(req, res, next) {
     try {
+      const player = await User.findOne({
+        where: {
+          id: +req.user.id,
+        },
+      });
+      const { draw } = player;
+      if (draw < 1) res.status(200).json({ message: "Draw chance is needed!" });
+
       const fetchFunction = async () => {
         const random = Math.ceil(Math.random() * 1280);
         const getPokemon = await axios({
@@ -104,12 +136,6 @@ class Pokemons {
       };
 
       const data = await fetchFunction();
-      const player = await User.findOne({
-        where: {
-          id: +req.user.id,
-        },
-      });
-      const { draw } = player;
 
       await User.update(
         { gacha: +data, draw: draw - 1 },
@@ -224,13 +250,11 @@ class Pokemons {
       });
 
       if (created) {
-        console.log(type)
         type = type.split(",");
         for (const el of type) {
           const typeInstance = await Type.findOne({
             where: { name: el },
           });
-
           await TypePokemon.create({
             PokemonId: +pokemon.id,
             TypeId: typeInstance.id,
@@ -251,7 +275,6 @@ class Pokemons {
     }
   }
   static async deleteOneFromCollection(req, res, next) {
-    console.log(req.params.pokemonId);
     await UserPokemon.destroy({
       where: {
         UserId: +req.user.id,
