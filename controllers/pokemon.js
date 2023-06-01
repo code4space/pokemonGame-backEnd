@@ -26,8 +26,8 @@ class Pokemons {
               "img1",
               "img2",
               "summary",
-              "createdAt",
-              "updatedAt",
+              "frontView",
+              "backView",
             ],
             include: [
               {
@@ -74,25 +74,27 @@ class Pokemons {
           img1,
           img2,
           summary,
-          createdAt,
-          updatedAt,
+          frontView,
+          backView,
         } = userPokemon.Pokemon;
 
         const types = userPokemon.Pokemon.Types;
+        const level = userPokemon.level - 1
 
         return {
           id,
           name,
-          hp,
-          attack,
-          def,
+          hp: hp + (Math.floor(5/100 * hp) * level),
+          attack: attack + (Math.floor(5/100 * attack) * level),
+          def: def + (Math.floor(5/100 * def) * level),
           baseExp,
-          power,
+          power: power + (Math.floor(5/100 * power) * level),
           img1,
           img2,
           summary,
-          createdAt,
-          updatedAt,
+          frontView,
+          backView,
+          level: userPokemon.level,
           type: types,
         };
       });
@@ -200,6 +202,8 @@ class Pokemons {
         img1: pokemonData.sprites.other.dream_world.front_default,
         img2: pokemonData.sprites.other["official-artwork"].front_default,
         summary,
+        frontView: pokemonData.sprites.front_default,
+        backView: pokemonData.sprites.back_default,
         type: type.join(","),
       };
 
@@ -212,8 +216,20 @@ class Pokemons {
 
   static async addOneToCollection(req, res, next) {
     try {
-      let { name, attack, hp, def, baseExp, power, img1, img2, summary, type } =
-        req.body;
+      let {
+        name,
+        attack,
+        hp,
+        def,
+        baseExp,
+        power,
+        img1,
+        img2,
+        summary,
+        frontView,
+        backView,
+        type,
+      } = req.body;
 
       if (!name) throw { name: "Name is required" };
       else if (!attack) throw { name: "attack is required" };
@@ -224,6 +240,8 @@ class Pokemons {
       else if (!img1) throw { name: "img1 is required" };
       else if (!img2) throw { name: "img2 is required" };
       else if (!summary) throw { name: "summary is required" };
+      else if (!frontView) throw { name: "frontView is required" };
+      else if (!backView) throw { name: "backView is required" };
       else if (!type) throw { name: "type is required" };
 
       const [pokemon, pokemonCreated] = await Pokemon.findOrCreate({
@@ -238,6 +256,8 @@ class Pokemons {
           img1,
           img2,
           summary,
+          frontView,
+          backView,
         },
       });
 
@@ -265,8 +285,12 @@ class Pokemons {
           .status(201)
           .json({ message: "Success add new Pokemon to collection" });
       } else {
+        await UserPokemon.update(
+          { level: userPokemon.level + 5 },
+          { where: { UserId: +req.user.id, PokemonId: +pokemon.id } }
+        );
         res.status(201).json({
-          message: `User with id ${req.user.id} already have ${pokemon.name}`,
+          message: `User ID ${req.user.id} already possesses ${pokemon.name}, ascended by 5 levels.`,
         });
       }
     } catch (error) {
@@ -282,6 +306,32 @@ class Pokemons {
       },
     });
     res.status(200).json({ message: "Success Delete Pokemon" });
+    try {
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+  static async pokemonLevelUp(req, res, next) {
+    const userPokemon = await UserPokemon.findOne({
+      where: { UserId: +req.user.id, PokemonId: +req.params.pokemonId },
+    });
+    await UserPokemon.update(
+      {
+        level: userPokemon.level + 1,
+      },
+      {
+        where: {
+          UserId: +req.user.id,
+          PokemonId: +req.params.pokemonId,
+        },
+      }
+    );
+    res
+      .status(200)
+      .json({
+        message: `Pokemon with id ${req.params.pokemonId} success Lvl up`,
+      });
     try {
     } catch (error) {
       console.log(error);

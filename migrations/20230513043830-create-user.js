@@ -20,15 +20,12 @@ module.exports = {
       },
       draw: {
         type: Sequelize.INTEGER,
-        allowNull: false,
       },
       balls: {
         type: Sequelize.JSONB,
-        allowNull: false,
       },
       gacha: {
         type: Sequelize.INTEGER,
-        allowNull: false,
       },
       createdAt: {
         allowNull: false,

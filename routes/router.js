@@ -35,6 +35,7 @@ route.get('/one/pokemon', Pokemon.getOnePokemon)
 route.delete('/pokemon/:pokemonId', Pokemon.deleteOneFromCollection)
 route.post('/pokemon', Pokemon.addOneToCollection)
 route.patch('/skip/pokemon', Pokemon.skip)
+route.patch('/pokemon/levelup/:pokemonId', Pokemon.pokemonLevelUp)
 route.patch('/pokeball/decrease', Player.pokeballUsed)
 route.patch('/pokeball/increase', Player.getPokeball)
 

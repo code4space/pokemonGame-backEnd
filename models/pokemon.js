@@ -86,6 +86,22 @@ module.exports = (sequelize, DataTypes) => {
           notNull: { msg: "summary is required" },
         },
       },
+      frontView: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: { msg: "frontView is required" },
+          notNull: { msg: "frontView is required" },
+        },
+      },
+      backView: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: { msg: "backView is required" },
+          notNull: { msg: "backView is required" },
+        },
+      },
     },
     {
       sequelize,

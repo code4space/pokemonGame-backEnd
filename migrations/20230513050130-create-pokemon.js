@@ -45,6 +45,14 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
+      frontView: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      backView: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

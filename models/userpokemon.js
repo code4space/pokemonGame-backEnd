@@ -3,8 +3,8 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class UserPokemon extends Model {
     static associate(models) {
-      UserPokemon.belongsTo(models.User, { foreignKey: 'UserId' });
-      UserPokemon.belongsTo(models.Pokemon, { foreignKey: 'PokemonId' });
+      UserPokemon.belongsTo(models.User, { foreignKey: "UserId" });
+      UserPokemon.belongsTo(models.Pokemon, { foreignKey: "PokemonId" });
     }
   }
   UserPokemon.init(
@@ -25,11 +25,18 @@ module.exports = (sequelize, DataTypes) => {
           notNull: { msg: "PokemonId is required" },
         },
       },
+      level: {
+        type: DataTypes.INTEGER,
+      },
     },
     {
       sequelize,
       modelName: "UserPokemon",
     }
   );
+  UserPokemon.beforeCreate((userPokemon, opt) => {
+    userPokemon.level = 1
+  });
+
   return UserPokemon;
 };

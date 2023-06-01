@@ -29,27 +29,12 @@ module.exports = (sequelize, DataTypes) => {
     },
     draw: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      validate: {
-        notEmpty: { msg: "draw is required" },
-        notNull: { msg: "draw is required" },
-      },
     },
     balls: {
       type: DataTypes.JSONB,
-      allowNull: false,
-      validate: {
-        notEmpty: { msg: "Balls is required" },
-        notNull: { msg: "Balls is required" },
-      }
     },
     gacha: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      validate: {
-        notEmpty: { msg: "gacha is required" },
-        notNull: { msg: "gacha is required" },
-      },
     },
   }, {
     sequelize,
