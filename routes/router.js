@@ -31,6 +31,7 @@ route.use(validation)
 
 route.get('/user', Player.getUserInfo)
 route.get('/pokemon', Pokemon.getMyCollection)
+route.get('/pokemon/enemies/:difficulty', Pokemon.getEnemies)
 route.get('/one/pokemon', Pokemon.getOnePokemon)
 route.delete('/pokemon/:pokemonId', Pokemon.deleteOneFromCollection)
 route.post('/pokemon', Pokemon.addOneToCollection)

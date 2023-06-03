@@ -1,6 +1,7 @@
 const { default: axios } = require("axios");
 const additionalPower = require("../helper/power");
 const { Pokemon, User, UserPokemon, Type, TypePokemon } = require("../models");
+const { elementWeakness } = require("../helper/element");
 
 class Pokemons {
   static async getMyCollection(req, res, next) {
@@ -78,17 +79,17 @@ class Pokemons {
           backView,
         } = userPokemon.Pokemon;
 
-        const types = userPokemon.Pokemon.Types;
-        const level = userPokemon.level - 1
+        const types = elementWeakness(userPokemon.Pokemon.Types);
+        const level = userPokemon.level - 1;
 
         return {
           id,
           name,
-          hp: hp + (Math.floor(5/100 * hp) * level),
-          attack: attack + (Math.floor(5/100 * attack) * level),
-          def: def + (Math.floor(5/100 * def) * level),
+          hp: hp + Math.floor((5 / 100) * hp) * level,
+          attack: attack + Math.floor((5 / 100) * attack) * level,
+          def: def + Math.floor((5 / 100) * def) * level,
           baseExp,
-          power: power + (Math.floor(5/100 * power) * level),
+          power: power + Math.floor((5 / 100) * power) * level,
           img1,
           img2,
           summary,
@@ -104,6 +105,69 @@ class Pokemons {
         totalPokemon: distinctPokemonCount,
         page,
       });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+
+  static async getEnemies(req, res, next) {
+    try {
+      const { difficulty } = req.params;
+      let top15Pokemon = await Pokemon.findAll({
+        limit: 15,
+        include: [
+          {
+            model: Type,
+            attributes: ["name", "weakness", "strength", "immune"],
+            through: { attributes: [] }, // Exclude the join table attributes
+          },
+        ],
+        order: [], // Random order, you can change the order as per your requirement
+      });
+
+      let top3Pokemon = [];
+      let check = [];
+
+      function getRandom() {
+        const random = Math.floor(Math.random() * 15);
+        let isSame = check.find((el) => el === random);
+        if (isSame) return getRandom();
+        return random;
+      }
+
+      for (let i = 0; i < 3; i++) {
+        let random = getRandom();
+        let level = Math.ceil(Math.random() * (difficulty === 'false' ? 5 : 25));
+        const {
+          id,
+          name,
+          hp,
+          attack,
+          def,
+          baseExp,
+          power,
+          frontView,
+          backView,
+          Types,
+        } = top15Pokemon[random];
+        top3Pokemon.push({
+          id,
+          name,
+          hp: hp + Math.floor((5 / 100) * hp) * (level - 1),
+          attack: attack + Math.floor((5 / 100) * attack) * (level - 1),
+          def: def + Math.floor((5 / 100) * def) * (level - 1),
+          baseExp,
+          power: power + Math.floor((5 / 100) * power) * (level - 1),
+          frontView,
+          backView,
+          type: elementWeakness(Types),
+          level,
+        });
+        check.push(random);
+      }
+
+      res.status(200).json({ pokemon: top3Pokemon });
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: "Internal Server Error" });
@@ -327,11 +391,9 @@ class Pokemons {
         },
       }
     );
-    res
-      .status(200)
-      .json({
-        message: `Pokemon with id ${req.params.pokemonId} success Lvl up`,
-      });
+    res.status(200).json({
+      message: `Pokemon with id ${req.params.pokemonId} success Lvl up`,
+    });
     try {
     } catch (error) {
       console.log(error);
