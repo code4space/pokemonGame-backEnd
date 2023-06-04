@@ -138,7 +138,11 @@ class Pokemons {
 
       for (let i = 0; i < 3; i++) {
         let random = getRandom();
-        let level = Math.ceil(Math.random() * (difficulty === 'false' ? 5 : 25));
+        let level = Math.ceil(
+          Math.random() * (difficulty === "false" ? 8 : 23)
+        );
+
+        if (difficulty === 'true') level += 7
         const {
           id,
           name,
@@ -376,23 +380,29 @@ class Pokemons {
       res.status(500).json({ message: "Internal Server Error" });
     }
   }
+
   static async pokemonLevelUp(req, res, next) {
-    const userPokemon = await UserPokemon.findOne({
-      where: { UserId: +req.user.id, PokemonId: +req.params.pokemonId },
-    });
-    await UserPokemon.update(
-      {
-        level: userPokemon.level + 1,
-      },
-      {
-        where: {
-          UserId: +req.user.id,
-          PokemonId: +req.params.pokemonId,
+    const { pokemonId, upLevel } = req.body;
+
+    for (let i = 0; i < pokemonId.length; i++) {
+      const userPokemon = await UserPokemon.findOne({
+        where: { UserId: +req.user.id, PokemonId: +pokemonId[i] },
+      });
+      await UserPokemon.update(
+        {
+          level: userPokemon.level + upLevel,
         },
-      }
-    );
+        {
+          where: {
+            UserId: +req.user.id,
+            PokemonId: +pokemonId[i],
+          },
+        }
+      );
+    }
+
     res.status(200).json({
-      message: `Pokemon with id ${req.params.pokemonId} success Lvl up`,
+      message: `Pokemon with id ${pokemonId.join(',')} success Lvl up`,
     });
     try {
     } catch (error) {

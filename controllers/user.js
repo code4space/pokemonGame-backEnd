@@ -75,14 +75,15 @@ class Player {
           id: +req.user.id,
         },
       });
-      const {ballType} = req.body
+      const { ballType } = req.body;
       const { balls } = data;
-      let newBalls = balls
-      if (newBalls[ballType] < 1) throw { runOut: `Your ${ballType} already run out`};
-      newBalls[ballType] = newBalls[ballType] - 1
+      let newBalls = balls;
+      if (newBalls[ballType] < 1)
+        throw { runOut: `Your ${ballType} already run out` };
+      newBalls[ballType] = newBalls[ballType] - 1;
 
       await User.update(
-        { balls:newBalls },
+        { balls: newBalls },
         {
           where: {
             id: +req.user.id,
@@ -91,7 +92,7 @@ class Player {
       );
       res.status(200).json({ message: `${ballType} decrease` });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       if (error.runOut) res.status(500).json({ message: error.runOut });
       else res.status(500).json({ message: "Internal Server Error" });
     }
@@ -104,21 +105,45 @@ class Player {
           id: +req.user.id,
         },
       });
-      const {ballType} = req.body
+      const { listBall } = req.body;
+
       const { balls } = data;
-      let newBalls = balls
-      newBalls[ballType] = newBalls[ballType] + 1
+      let newBalls = balls;
+
+      for (let i = 0; i < listBall.length; i++) {
+        newBalls[listBall[i].ball] =
+          newBalls[listBall[i].ball] + listBall[i].increase;
+      }
 
       await User.update(
-        { balls:newBalls },
+        { balls: newBalls },
         {
           where: {
             id: +req.user.id,
           },
         }
       );
-      res.status(200).json({ message: `${ballType} increase by 1` });
+
+      res.status(200).json({ message: `pokeball increase success` });
     } catch (error) {
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+
+  static async drawIncrease(req, res, next) {
+    try {
+      const user = await User.findByPk(+req.user.id)
+
+      await User.update(
+        { draw: user.draw + (+req.params.amount) },
+        {
+          where: { id: +req.user.id },
+        }
+      );
+
+      res.status(200).json({ message: `draw increase success` });
+    } catch (error) {
+      console.log(error)
       res.status(500).json({ message: "Internal Server Error" });
     }
   }
