@@ -22,7 +22,7 @@ module.exports = {
         type: Sequelize.INTEGER,
       },
       balls: {
-        type: Sequelize.JSONB,
+        type: Sequelize.STRING,
       },
       gacha: {
         type: Sequelize.INTEGER,

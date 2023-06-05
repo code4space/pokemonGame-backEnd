@@ -115,7 +115,7 @@ class Pokemons {
     try {
       const { difficulty } = req.params;
       let top15Pokemon = await Pokemon.findAll({
-        limit: 15,
+        limit: 30,
         include: [
           {
             model: Type,
@@ -139,10 +139,10 @@ class Pokemons {
       for (let i = 0; i < 3; i++) {
         let random = getRandom();
         let level = Math.ceil(
-          Math.random() * (difficulty === "false" ? 8 : 23)
+          Math.random() * (difficulty === "false" ? 2 : 23)
         );
 
-        if (difficulty === 'true') level += 7
+        if (difficulty === "true") level += 7;
         const {
           id,
           name,
@@ -180,33 +180,32 @@ class Pokemons {
 
   static async skip(req, res, next) {
     try {
-      const player = await User.findOne({
-        where: {
-          id: +req.user.id,
-        },
-      });
+      const player = await User.findByPk(+req.user.id);
       const { draw } = player;
-      if (draw < 1) res.status(200).json({ message: "Draw chance is needed!" });
+
+      if (draw < 1) {
+        return res.status(200).json({ message: "Draw chance is needed!" });
+      }
 
       const fetchFunction = async () => {
         const random = Math.ceil(Math.random() * 1280);
-        const getPokemon = await axios({
-          url: `https://pokeapi.co/api/v2/pokemon?limit=1&offset=${random}`,
-          method: "GET",
-        });
+        const getPokemon = await axios.get(
+          `https://pokeapi.co/api/v2/pokemon?limit=1&offset=${random}`
+        );
         const randomPokemon = getPokemon.data.results[0];
-
         const { data: pokemonData } = await axios.get(randomPokemon.url);
 
-        if (pokemonData.base_experience === null) return fetchFunction();
-        else if (pokemonData.sprites.other.dream_world.front_default === null)
+        if (
+          pokemonData.base_experience === null ||
+          pokemonData.sprites.other.dream_world.front_default === null
+        ) {
           return fetchFunction();
+        }
 
         return random;
       };
 
       const data = await fetchFunction();
-
       await User.update(
         { gacha: +data, draw: draw - 1 },
         {
@@ -225,62 +224,52 @@ class Pokemons {
 
   static async getOnePokemon(req, res, next) {
     try {
-      const data = await User.findOne({
-        where: {
-          id: +req.user.id,
-        },
-      });
-
-      const getPokemon = await axios({
-        url: `https://pokeapi.co/api/v2/pokemon?limit=1&offset=${data.gacha}`,
-        method: "GET",
-      });
-
+      const data = await User.findByPk(+req.user.id);
+      const getPokemon = await axios.get(`https://pokeapi.co/api/v2/pokemon?limit=1&offset=${data.gacha}`);
       const randomPokemon = getPokemon.data.results[0];
-      const { data: pokemonData } = await axios.get(randomPokemon.url);
-      const { data: pokemonData1 } = await axios.get(pokemonData.species.url);
-
-      let summary,
-        type = [];
-      const fte = pokemonData1.flavor_text_entries;
+      const pokemonData = await axios.get(randomPokemon.url);
+      const pokemonData1 = await axios.get(pokemonData.data.species.url);
+  
+      let summary, type = [];
+      const fte = pokemonData1.data.flavor_text_entries;
       for (let i = 0; i < fte.length; i++) {
         if (fte[i].language.name === "en") {
-          summary = fte[i].flavor_text
-            .replace(/\\n|\\f/g, " ")
-            .replace(/\n|\f/g, " ");
+          summary = fte[i].flavor_text.replace(/\\n|\\f/g, " ").replace(/\n|\f/g, " ");
           break;
         }
       }
-      pokemonData.types.forEach((el) => {
-        type.push(el.type.name);
-      });
-
+  
+      const typePromises = pokemonData.data.types.map(el => axios.get(el.type.url));
+      const typeResponses = await Promise.all(typePromises);
+      console.log(typeResponses)
+      type = typeResponses.map(response => response.data.name);
+  
+      const { stats, base_experience, sprites } = pokemonData.data;
+      const baseStatSum = stats.reduce((sum, stat) => sum + stat.base_stat, 0);
+      const additionalPower = (base_experience) => base_experience * 0.1;
+  
       const pokemon = {
         name: randomPokemon.name,
-        attack: pokemonData.stats[1].base_stat,
-        hp: pokemonData.stats[0].base_stat,
-        def: pokemonData.stats[2].base_stat,
-        baseExp: pokemonData.base_experience,
-        power:
-          pokemonData.base_experience +
-          pokemonData.stats[2].base_stat +
-          pokemonData.stats[1].base_stat +
-          pokemonData.stats[0].base_stat +
-          additionalPower(pokemonData.base_experience),
-        img1: pokemonData.sprites.other.dream_world.front_default,
-        img2: pokemonData.sprites.other["official-artwork"].front_default,
+        attack: stats[1].base_stat,
+        hp: stats[0].base_stat,
+        def: stats[2].base_stat,
+        baseExp: base_experience,
+        power: base_experience + baseStatSum + additionalPower(base_experience),
+        img1: sprites.other.dream_world.front_default,
+        img2: sprites.other["official-artwork"].front_default,
         summary,
-        frontView: pokemonData.sprites.front_default,
-        backView: pokemonData.sprites.back_default,
+        frontView: sprites.front_default,
+        backView: sprites.back_default,
         type: type.join(","),
       };
-
+  
       res.status(200).json({ pokemon });
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: "Internal Server Error" });
     }
   }
+  
 
   static async addOneToCollection(req, res, next) {
     try {
@@ -402,7 +391,7 @@ class Pokemons {
     }
 
     res.status(200).json({
-      message: `Pokemon with id ${pokemonId.join(',')} success Lvl up`,
+      message: `Pokemon with id ${pokemonId.join(",")} success Lvl up`,
     });
     try {
     } catch (error) {

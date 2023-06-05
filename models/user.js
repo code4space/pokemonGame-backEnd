@@ -31,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
     },
     balls: {
-      type: DataTypes.JSONB,
+      type: DataTypes.STRING,
     },
     gacha: {
       type: DataTypes.INTEGER,

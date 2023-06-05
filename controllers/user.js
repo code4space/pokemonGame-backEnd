@@ -56,11 +56,7 @@ class Player {
 
   static async getUserInfo(req, res, next) {
     try {
-      const data = await User.findOne({
-        where: {
-          id: +req.user.id,
-        },
-      });
+      const data = await User.findByPk(+req.user.id)
       const { gacha, balls, draw } = data;
       res.status(200).json({ data: { gacha, balls, draw } });
     } catch (error) {
@@ -70,20 +66,16 @@ class Player {
 
   static async pokeballUsed(req, res, next) {
     try {
-      const data = await User.findOne({
-        where: {
-          id: +req.user.id,
-        },
-      });
+      const data = await User.findByPk(+req.user.id);
       const { ballType } = req.body;
       const { balls } = data;
-      let newBalls = balls;
+      let newBalls = JSON.parse(balls);
       if (newBalls[ballType] < 1)
         throw { runOut: `Your ${ballType} already run out` };
       newBalls[ballType] = newBalls[ballType] - 1;
 
       await User.update(
-        { balls: newBalls },
+        { balls: JSON.stringify(newBalls) },
         {
           where: {
             id: +req.user.id,
@@ -100,15 +92,11 @@ class Player {
 
   static async getPokeball(req, res, next) {
     try {
-      const data = await User.findOne({
-        where: {
-          id: +req.user.id,
-        },
-      });
+      const data = await User.findByPk(+req.user.id)
       const { listBall } = req.body;
 
       const { balls } = data;
-      let newBalls = balls;
+      let newBalls = JSON.parse(balls);
 
       for (let i = 0; i < listBall.length; i++) {
         newBalls[listBall[i].ball] =
@@ -116,7 +104,7 @@ class Player {
       }
 
       await User.update(
-        { balls: newBalls },
+        { balls: JSON.stringify(newBalls) },
         {
           where: {
             id: +req.user.id,
