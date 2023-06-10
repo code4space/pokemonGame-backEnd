@@ -130,7 +130,7 @@ class Pokemons {
       let check = [];
 
       function getRandom() {
-        const random = Math.floor(Math.random() * 15);
+        const random = Math.floor(Math.random() * top15Pokemon.length);
         let isSame = check.find((el) => el === random);
         if (isSame) return getRandom();
         return random;
@@ -241,7 +241,6 @@ class Pokemons {
   
       const typePromises = pokemonData.data.types.map(el => axios.get(el.type.url));
       const typeResponses = await Promise.all(typePromises);
-      console.log(typeResponses)
       type = typeResponses.map(response => response.data.name);
   
       const { stats, base_experience, sprites } = pokemonData.data;
