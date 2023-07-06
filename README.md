@@ -20,6 +20,20 @@ Agar dapat menjalankan server ini secara lokal, pastikan kalau di device kalian 
 
 &nbsp;
 
+## Untuk mulai
+
+Siapkan folder project, lalu buka terminal di alamat folder tersebut dan lakukan command dibawah ini
+
+```
+$ git clone https://github.com/code4space/pokemonGame-backEnd.git
+$ cd pokemonGame-backEnd
+$ npm install
+$ node index.js / $ nodemon (harus install terlebih dahulu)
+```
+
+_Disarankan menginstall [Git Bash](https://git-scm.com/downloads) terlebih dahulu_
+
+
 ## Cara Seeding data
 
 ```js
@@ -33,19 +47,6 @@ $ npx sequelize-cli db:seed:all
 ```
 
 &nbsp;
-
-## Untuk mulai
-
-Siapkan folder project, lalu buka terminal di alamat folder tersebut dan lakukan command dibawah ini
-
-```
-$ git clone https://github.com/code4space/pokemonGame-backEnd.git
-$ cd pokemonGame-backEnd
-$ npm install
-$ node index.js / $ nodemon (harus install terlebih dahulu)
-```
-
-_Disarankan menginstall [Git Bash](https://git-scm.com/downloads) terlebih dahulu_
 
 &nbsp;
 
