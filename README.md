@@ -39,7 +39,6 @@ _Disarankan menginstall [Git Bash](https://git-scm.com/downloads) terlebih dahul
 ```js
 // Pastikan config server sudah di setup di pokemonGame-backEnd/config/config.json sesuai setingan masing masing
 
-$ cd pokemonGame-backEnd
 $ npx sequelize-cli db:migrate
 $ npx sequelize-cli db:seed:all
 
