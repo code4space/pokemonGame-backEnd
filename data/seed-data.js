@@ -163,8 +163,8 @@ const user = [
     updatedAt: new Date(),
   },
   {
-    username: "cekidot",
-    password: hashPassword("02193192028"),
+    username: "user",
+    password: hashPassword("12345678"),
     draw: 10,
     balls: JSON.stringify({
       pokeball: 7,

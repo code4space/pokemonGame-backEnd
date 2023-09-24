@@ -225,28 +225,35 @@ class Pokemons {
   static async getOnePokemon(req, res, next) {
     try {
       const data = await User.findByPk(+req.user.id);
-      const getPokemon = await axios.get(`https://pokeapi.co/api/v2/pokemon?limit=1&offset=${data.gacha}`);
+      const getPokemon = await axios.get(
+        `https://pokeapi.co/api/v2/pokemon?limit=1&offset=${data.gacha}`
+      );
       const randomPokemon = getPokemon.data.results[0];
       const pokemonData = await axios.get(randomPokemon.url);
       const pokemonData1 = await axios.get(pokemonData.data.species.url);
-  
-      let summary, type = [];
+
+      let summary,
+        type = [];
       const fte = pokemonData1.data.flavor_text_entries;
       for (let i = 0; i < fte.length; i++) {
         if (fte[i].language.name === "en") {
-          summary = fte[i].flavor_text.replace(/\\n|\\f/g, " ").replace(/\n|\f/g, " ");
+          summary = fte[i].flavor_text
+            .replace(/\\n|\\f/g, " ")
+            .replace(/\n|\f/g, " ");
           break;
         }
       }
-  
-      const typePromises = pokemonData.data.types.map(el => axios.get(el.type.url));
+
+      const typePromises = pokemonData.data.types.map((el) =>
+        axios.get(el.type.url)
+      );
       const typeResponses = await Promise.all(typePromises);
-      type = typeResponses.map(response => response.data.name);
-  
+      type = typeResponses.map((response) => response.data.name);
+
       const { stats, base_experience, sprites } = pokemonData.data;
       const baseStatSum = stats.reduce((sum, stat) => sum + stat.base_stat, 0);
       const additionalPower = (base_experience) => base_experience * 0.1;
-  
+
       const pokemon = {
         name: randomPokemon.name,
         attack: stats[1].base_stat,
@@ -261,14 +268,13 @@ class Pokemons {
         backView: sprites.back_default,
         type: type.join(","),
       };
-  
+
       res.status(200).json({ pokemon });
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: "Internal Server Error" });
     }
   }
-  
 
   static async addOneToCollection(req, res, next) {
     try {
@@ -355,14 +361,14 @@ class Pokemons {
     }
   }
   static async deleteOneFromCollection(req, res, next) {
-    await UserPokemon.destroy({
-      where: {
-        UserId: +req.user.id,
-        PokemonId: +req.params.pokemonId,
-      },
-    });
-    res.status(200).json({ message: "Success Delete Pokemon" });
     try {
+      await UserPokemon.destroy({
+        where: {
+          UserId: +req.user.id,
+          PokemonId: +req.params.pokemonId,
+        },
+      });
+      res.status(200).json({ message: "Success Delete Pokemon" });
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: "Internal Server Error" });
@@ -370,29 +376,29 @@ class Pokemons {
   }
 
   static async pokemonLevelUp(req, res, next) {
-    const { pokemonId, upLevel } = req.body;
-
-    for (let i = 0; i < pokemonId.length; i++) {
-      const userPokemon = await UserPokemon.findOne({
-        where: { UserId: +req.user.id, PokemonId: +pokemonId[i] },
-      });
-      await UserPokemon.update(
-        {
-          level: userPokemon.level + upLevel,
-        },
-        {
-          where: {
-            UserId: +req.user.id,
-            PokemonId: +pokemonId[i],
-          },
-        }
-      );
-    }
-
-    res.status(200).json({
-      message: `Pokemon with id ${pokemonId.join(",")} success Lvl up`,
-    });
     try {
+      const { pokemonId, upLevel } = req.body;
+
+      for (let i = 0; i < pokemonId.length; i++) {
+        const userPokemon = await UserPokemon.findOne({
+          where: { UserId: +req.user.id, PokemonId: +pokemonId[i] },
+        });
+        await UserPokemon.update(
+          {
+            level: userPokemon.level + upLevel,
+          },
+          {
+            where: {
+              UserId: +req.user.id,
+              PokemonId: +pokemonId[i],
+            },
+          }
+        );
+      }
+
+      res.status(200).json({
+        message: `Pokemon with id ${pokemonId.join(",")} success Lvl up`,
+      });
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: "Internal Server Error" });

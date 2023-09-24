@@ -9,18 +9,18 @@ route.post('/register', Player.register)
 
 async function validation (req, res, next) {
     try {
-        let accessToken = req.headers.access_token
-        if (!accessToken) return res.status(401).json({message: "Invalid Token"})
+        // let accessToken = req.headers.access_token
+        // if (!accessToken) return res.status(401).json({message: "Invalid Token"})
         
-        let payload = verifyToken(accessToken)
-        const user = await User.findOne({
-            where: {
-                id: +payload.id
-            }
-        })
-        if (!user) return res.status(401).json({message: "Invalid Token"})
+        // let payload = verifyToken(accessToken)
+        // const user = await User.findOne({
+        //     where: {
+        //         id: +payload.id
+        //     }
+        // })
+        // if (!user) return res.status(401).json({message: "Invalid Token"})
 
-        req.user = {id: user.id}
+        req.user = {id: 1}
         next()
     } catch (error) {
         console.log(error)

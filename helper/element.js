@@ -5,6 +5,8 @@ function elementWeakness(elements) {
     result = [],
     element = [];
 
+    console.log(elements)
+
   //combine weakness and strength if pokemon has more than 1 element
   for (let i = 0; i < elements.length; i++) {
     element.push(elements[i].name);
